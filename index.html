@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#100d0d">
+    <title>刘任蛟 · 个人探索页</title>
+    <style>
+        :root {
+            --bg: #100d0d;
+            --bg-soft: #171313;
+            --ink: #f5f1ea;
+            --muted: #9a9188;
+            --faint: #6f6860;
+            --accent: #d8875b;
+            --accent-soft: rgba(216, 135, 91, 0.16);
+            --line: rgba(245, 241, 234, 0.12);
+            --mono: ui-monospace, "SF Mono", "Geist Mono", "JetBrains Mono", monospace;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.75;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 背景氛围：背景图 + 低对比深色渐变 + 光晕 + 点阵 */
+        .bg-image {
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+            pointer-events: none;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .bg-image.bg-main {
+            background-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=moody%20dark%20abstract%20minimal%20background%2C%20soft%20warm%20amber%20and%20coral%20light%20glow%20on%20near-black%2C%20subtle%20teal%20undertones%2C%20gentle%20geometric%20line%20and%20fine%20dot%20texture%2C%20cinematic%20atmosphere%2C%20quiet%20and%20understated%2C%20no%20text&image_size=landscape_16_9");
+            opacity: 0.5;
+        }
+        .bg-image.bg-lines {
+            background-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=minimal%20dark%20geometric%20line%20pattern%2C%20fine%20thin%20curved%20lines%2C%20subtle%20warm%20gold%20on%20deep%20charcoal%2C%20abstract%2C%20elegant%20and%20quiet%2C%20no%20text&image_size=portrait_16_9");
+            opacity: 0.22;
+            mix-blend-mode: screen;
+        }
+        .bg-image.bg-glow {
+            background-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=soft%20blurred%20bokeh%20of%20warm%20amber%20and%20teal%20light%20specks%20on%20dark%20background%2C%20cinematic%2C%20low%20contrast%2C%20dreamy%20and%20calm%2C%20no%20text&image_size=square_hd");
+            opacity: 0.28;
+            mix-blend-mode: screen;
+        }
+        .bg-image.bg-grain {
+            background-image: url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20flowing%20silk%20fabric%20texture%2C%20dark%20maroon%20and%20dark%20teal%20tones%2C%20soft%20and%20elegant%2C%20fine%20grain%2C%20no%20text&image_size=landscape_16_9");
+            opacity: 0.18;
+            mix-blend-mode: soft-light;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background:
+                radial-gradient(1000px 700px at 12% -8%, rgba(216, 135, 91, 0.14), transparent 62%),
+                radial-gradient(900px 720px at 100% 108%, rgba(86, 116, 122, 0.16), transparent 60%),
+                radial-gradient(circle, rgba(245, 241, 234, 0.05) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(16, 13, 13, 0.7) 0%, rgba(16, 13, 13, 0.32) 50%, rgba(16, 13, 13, 0.8) 100%);
+            background-size: auto, auto, 32px 32px, cover;
+        }
+
+        a { color: inherit; text-decoration: none; }
+        .mono { font-family: var(--mono); }
+
+        /* 阅读进度条 */
+        .progress {
+            position: fixed; top: 0; left: 0; height: 2px;
+            width: 0; background: var(--accent); z-index: 100;
+            transition: width 60ms linear;
+        }
+
+        /* 顶部导航 */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.1rem clamp(1.25rem, 4vw, 3rem);
+            backdrop-filter: blur(10px);
+            transition: background 0.25s ease, border-color 0.25s ease;
+            border-bottom: 1px solid transparent;
+        }
+        .nav.scrolled { background: rgba(16, 13, 13, 0.82); border-bottom-color: var(--line); }
+        .brand { font-weight: 700; letter-spacing: 0.12em; font-size: 0.8rem; color: var(--ink); }
+        .brand span { color: var(--accent); }
+        .nav-links { display: flex; gap: 1.75rem; }
+        .nav-links a {
+            font-size: 0.8rem; letter-spacing: 0.08em; color: var(--muted);
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--ink); }
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+        }
+
+        .wrap { width: min(1080px, calc(100% - 3rem)); margin: 0 auto; }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 7rem 0 4rem;
+        }
+        .eyebrow {
+            font-family: var(--mono); font-size: 0.72rem;
+            letter-spacing: 0.28em; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 1.75rem;
+        }
+        .hero h1 {
+            font-size: clamp(2.4rem, 7vw, 5.2rem);
+            line-height: 1.12; letter-spacing: -0.02em; font-weight: 700;
+            max-width: 16em;
+        }
+        .hero h1 em { font-style: normal; color: var(--accent); }
+        .hero .lead {
+            margin-top: 1.75rem; max-width: 34em;
+            color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.15rem);
+        }
+        .hero .identity {
+            margin-top: 1rem; font-size: 0.95rem; color: var(--faint);
+        }
+        .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 2.5rem; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.8rem 1.6rem; border-radius: 999px;
+            font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em;
+            border: 1px solid var(--line); cursor: pointer;
+            transition: all 0.22s ease; background: transparent; color: var(--ink);
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn.solid { background: var(--accent); border-color: var(--accent); color: #1a1210; }
+        .btn.solid:hover { background: #e39a6d; color: #1a1210; }
+        .scroll-hint {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            margin-top: 4rem; font-family: var(--mono); font-size: 0.7rem;
+            letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint);
+        }
+        .scroll-hint::after {
+            content: ''; width: 1px; height: 42px;
+            background: linear-gradient(var(--accent), transparent);
+            animation: drip 1.8s ease-in-out infinite;
+        }
+        @keyframes drip {
+            0% { transform: scaleY(0); transform-origin: top; }
+            45% { transform: scaleY(1); transform-origin: top; }
+            55% { transform: scaleY(1); transform-origin: bottom; }
+            100% { transform: scaleY(0); transform-origin: bottom; }
+        }
+
+        /* 章节通用 */
+        section { padding: clamp(4rem, 9vw, 7rem) 0; border-top: 1px solid var(--line); }
+        .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: clamp(1.75rem, 4vw, 3rem); }
+        .sec-num { font-family: var(--mono); color: var(--accent); font-size: 0.8rem; letter-spacing: 0.1em; }
+        .sec-title { font-size: clamp(1.6rem, 3.4vw, 2.4rem); font-weight: 700; letter-spacing: -0.01em; }
+        .sec-head .en { margin-left: auto; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.22em; color: var(--faint); text-transform: uppercase; }
+
+        /* 关于 */
+        .about { display: grid; grid-template-columns: 1.3fr 0.9fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
+        .about .bio { color: var(--muted); font-size: 1.05rem; max-width: 36em; }
+        .about .bio p + p { margin-top: 0.9rem; }
+        .about .bio strong { color: var(--ink); font-weight: 600; }
+        .portrait {
+            position: relative; padding: 1rem; background: var(--bg-soft);
+            border: 1px solid var(--line);
+        }
+        .portrait img {
+            display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+            filter: saturate(0.9) contrast(1.02);
+        }
+        .portrait::before, .portrait::after {
+            content: ''; position: absolute; width: 26px; height: 26px; border-color: var(--accent);
+        }
+        .portrait::before { top: -7px; left: -7px; border-top: 2px solid; border-left: 2px solid; }
+        .portrait::after { bottom: -7px; right: -7px; border-bottom: 2px solid; border-right: 2px solid; }
+        .portrait .cap {
+            position: absolute; left: 1rem; bottom: 0; transform: translateY(50%);
+            font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em;
+            color: var(--faint); text-transform: uppercase; background: var(--bg); padding: 0 0.5rem;
+        }
+        @media (max-width: 720px) {
+            .about { grid-template-columns: 1fr; }
+        }
+
+        /* 路径（纵向叙事） */
+        .path { display: grid; gap: 0; }
+        .path-item {
+            display: grid; grid-template-columns: 90px 1fr;
+            gap: 1.5rem; padding: 1.75rem 0; border-bottom: 1px solid var(--line);
+            position: relative;
+        }
+        .path-item:last-child { border-bottom: none; }
+        .path-index { font-family: var(--mono); color: var(--accent); font-size: 0.8rem; padding-top: 0.25rem; }
+        .path-item h3 { font-size: 1.25rem; font-weight: 600; }
+        .path-item p { color: var(--muted); margin-top: 0.35rem; max-width: 40em; }
+        @media (max-width: 640px) {
+            .path-item { grid-template-columns: 1fr; gap: 0.5rem; }
+        }
+
+        /* 能力 */
+        .skill-note { color: var(--muted); max-width: 44em; margin-bottom: 2rem; }
+        .skills { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+        .skill {
+            padding: 0.7rem 1.1rem; border: 1px solid var(--line); border-radius: 6px;
+            font-size: 0.9rem; color: var(--ink); background: rgba(255,255,255,0.02);
+            transition: all 0.2s;
+        }
+        .skill:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+        /* 佐证 */
+        .proof { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .proof-card {
+            background: var(--bg-soft); border: 1px solid var(--line); padding: 0.9rem;
+        }
+        .proof-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; opacity: 0.94; }
+        .proof-card p { margin-top: 1rem; font-weight: 600; letter-spacing: 0.01em; }
+        .proof-card small { font-family: var(--mono); color: var(--faint); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
+        @media (max-width: 640px) {
+            .proof { grid-template-columns: 1fr; }
+        }
+
+        /* 联系 */
+        .contact-title { font-size: clamp(1.8rem, 4.4vw, 3rem); font-weight: 700; letter-spacing: -0.01em; max-width: 0.95em; line-height: 1.25; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-top: 2.5rem; align-items: end; }
+        .contact-item { padding: 0.9rem 0; border-top: 1px solid var(--line); }
+        .contact-item .label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); margin-bottom: 0.4rem; }
+        .contact-item .value { font-size: 1.05rem; }
+        .contact-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; }
+        @media (max-width: 640px) {
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+
+        footer {
+            padding: 2rem 0 3rem; border-top: 1px solid var(--line);
+            display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem;
+            font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em;
+            color: var(--faint); text-transform: uppercase;
+        }
+
+        /* 滚动出现 */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .reveal.in { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+            .reveal { opacity: 1; transform: none; }
+        }
+
+        /* 打印 */
+        @media print {
+            .progress, .nav, .hero-actions, .scroll-hint { display: none !important; }
+            body { background: #fff; color: #000; }
+            body::before { display: none; }
+            .portrait, .proof-card { background: #fff; border-color: #ccc; }
+            .skill { border-color: #ccc; }
+            .reveal { opacity: 1; transform: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-image bg-main" aria-hidden="true"></div>
+    <div class="bg-image bg-lines" aria-hidden="true"></div>
+    <div class="bg-image bg-glow" aria-hidden="true"></div>
+    <div class="bg-image bg-grain" aria-hidden="true"></div>
+    <div class="progress" id="progress"></div>
+
+    <nav class="nav" id="nav">
+        <a class="brand" href="#top"><span>LIU RENJIAO</span> / PERSONAL SITE</a>
+        <div class="nav-links">
+            <a href="#about">关于</a>
+            <a href="#path">路径</a>
+            <a href="#skills">能力</a>
+            <a href="#proof">佐证</a>
+            <a href="#contact">联系</a>
+        </div>
+    </nav>
+
+    <main class="wrap" id="top">
+        <!-- Hero -->
+        <header class="hero">
+            <p class="eyebrow">Law × AI · Personal Exploration</p>
+            <h1>在规则与创造之间，<br>保持<em>好奇</em>。</h1>
+            <p class="lead">从法学出发，尝试借助 AI 工具和 Vibe Coding，把一个个想法变成可以运行的页面。</p>
+            <p class="identity">华北电力大学法学本科新生 · 对 AI 与法律交叉领域保持好奇</p>
+            <div class="hero-actions">
+                <a class="btn solid" href="#path">查看经历</a>
+                <button class="btn" id="btnCopyEmail">复制邮箱</button>
+                <a class="btn" href="#contact">联系我</a>
+            </div>
+            <span class="scroll-hint">Scroll to explore</span>
+        </header>
+
+        <!-- 01 关于 -->
+        <section id="about">
+            <div class="sec-head reveal">
+                <span class="sec-num">01</span>
+                <h2 class="sec-title">关于我</h2>
+                <span class="en">About</span>
+            </div>
+            <div class="about">
+                <div class="bio reveal">
+                    <p>我是<strong>刘任蛟</strong>，华北电力大学法学专业本科新生，来自湖南邵阳。对规则的严谨与技术的创造力同样感兴趣。</p>
+                    <p>我喜欢把抽象的想法落到具体的小项目里——通过 Vibe Coding 练习写页面、用 AI 工具整理信息和解决问题，在不断尝试中寻找属于自己的方向。</p>
+                    <p style="color:var(--faint); font-size:0.9rem;">2008.02 出生 · 即将入学</p>
+                </div>
+                <div class="portrait reveal">
+                    <img src="logo.jpg" alt="刘任蛟个人照片" onerror="this.style.display='none'">
+                    <span class="cap">Portrait / 2026</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02 路径 -->
+        <section id="path">
+            <div class="sec-head reveal">
+                <span class="sec-num">02</span>
+                <h2 class="sec-title">探索路径</h2>
+                <span class="en">Path</span>
+            </div>
+            <div class="path">
+                <div class="path-item reveal">
+                    <span class="path-index">01</span>
+                    <div><h3>法学基础</h3><p>从法律专业出发，关注规则、证据与真实的问题。</p></div>
+                </div>
+                <div class="path-item reveal">
+                    <span class="path-index">02</span>
+                    <div><h3>AI 工具实践</h3><p>用 AI 整理信息、辅助学习，并逐步理解工具背后的逻辑。</p></div>
+                </div>
+                <div class="path-item reveal">
+                    <span class="path-index">03</span>
+                    <div><h3>Vibe Coding</h3><p>借助 DeepSeek 与 TraeAgent 编写代码，解决基础问题并做简单优化。</p></div>
+                </div>
+                <div class="path-item reveal">
+                    <span class="path-index">04</span>
+                    <div><h3>持续学习</h3><p>把每一次尝试当作练习，在学习、实践与小项目中持续迭代。</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03 能力 -->
+        <section id="skills">
+            <div class="sec-head reveal">
+                <span class="sec-num">03</span>
+                <h2 class="sec-title">当前能力</h2>
+                <span class="en">Skills</span>
+            </div>
+            <p class="skill-note reveal">熟悉 Vibe Coding 工作方式，能够借助 DeepSeek 与 TraeAgent 编写代码、解决基础问题，并进行简单优化。</p>
+            <div class="skills reveal">
+                <span class="skill">Vibe Coding</span>
+                <span class="skill">DeepSeek</span>
+                <span class="skill">TraeAgent</span>
+                <span class="skill">Python 基础</span>
+                <span class="skill">PPT 制作</span>
+                <span class="skill">Word 排版</span>
+                <span class="skill">数据标注</span>
+                <span class="skill">团队协作</span>
+            </div>
+        </section>
+
+        <!-- 04 佐证 -->
+        <section id="proof">
+            <div class="sec-head reveal">
+                <span class="sec-num">04</span>
+                <h2 class="sec-title">学习与认证</h2>
+                <span class="en">Proof</span>
+            </div>
+            <div class="proof">
+                <div class="proof-card reveal">
+                    <img src="VX.jpg" alt="人工智能训练师初级证书">
+                    <p>人工智能训练师（初级）<br><small>阿里云 · 2026.07</small></p>
+                </div>
+                <div class="proof-card reveal">
+                    <img src="VX2.jpg" alt="人工智能训练师高级证书">
+                    <p>人工智能训练师（高级）<br><small>认证 · 2026.08</small></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 05 联系 -->
+        <section id="contact">
+            <p class="eyebrow reveal">A quiet invitation</p>
+            <h2 class="contact-title reveal">如果你也在探索技术、法律与创造力的交叉地带，欢迎联系我。</h2>
+            <div class="contact-grid">
+                <div class="reveal">
+                    <div class="contact-item"><div class="label">Email</div><a class="value" href="mailto:3220662073@qq.com">3220662073@qq.com</a></div>
+                    <div class="contact-item"><div class="label">Phone</div><a class="value" href="tel:17580763228">175 8076 3228</a></div>
+                    <div class="contact-item"><div class="label">WeChat</div><span class="value">淳鑠</span></div>
+                </div>
+                <div class="contact-actions reveal">
+                    <button class="btn solid" id="btnCopyEmail2">复制邮箱</button>
+                    <a class="btn" href="tel:17580763228">拨打电话</a>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <span>© 2026 LIU RENJIAO</span>
+            <span>Made for exploration</span>
+        </footer>
+    </main>
+
+    <script>
+        (function () {
+            const EMAIL = '3220662073@qq.com';
+
+            // 复制邮箱
+            function bindCopy(btn) {
+                if (!btn) return;
+                btn.addEventListener('click', function () {
+                    (navigator.clipboard ? navigator.clipboard.writeText(EMAIL) : Promise.reject())
+                        .then(function () {
+                            const t = btn.textContent;
+                            btn.textContent = '已复制';
+                            setTimeout(function () { btn.textContent = t; }, 1800);
+                        })
+                        .catch(function () {
+                            btn.textContent = '复制失败';
+                            setTimeout(function () { btn.textContent = '复制邮箱'; }, 1800);
+                        });
+                });
+            }
+            bindCopy(document.getElementById('btnCopyEmail'));
+            bindCopy(document.getElementById('btnCopyEmail2'));
+
+            // 导航滚动状态
+            const nav = document.getElementById('nav');
+            window.addEventListener('scroll', function () {
+                nav.classList.toggle('scrolled', window.scrollY > 40);
+            });
+
+            // 阅读进度条
+            const progress = document.getElementById('progress');
+            window.addEventListener('scroll', function () {
+                const h = document.documentElement;
+                const max = h.scrollHeight - h.clientHeight;
+                progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+            });
+
+            // 锚点平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+                a.addEventListener('click', function (e) {
+                    const target = document.querySelector(a.getAttribute('href'));
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // 滚动出现动画
+            const io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12 });
+            document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+        })();
+    </script>
+</body>
+</html>
